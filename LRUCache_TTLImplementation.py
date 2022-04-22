@@ -218,28 +218,67 @@ class ExpiringDict(OrderedDict):
             print("Miss Ratio:", 1 - 1.00 * self.hit / self.totalrequest)
 
     def get_sizeofdict(self):
-        print("Size of dictionary:",len(self))
+        print("Number of items in dictionary:",len(self))
 
-numofinsertions = 10000000
-heapsize = 10000000
+# numofinsertions = 10000000
+# heapsize = 10000000
 #max_age_seconds=TTL
-cache = ExpiringDict(max_len=heapsize,max_age_seconds=50)
-
-for i in tqdm.tqdm(range(numofinsertions)):#Inserting data into cache
-    randnum = random.randrange(start=1,stop=numofinsertions,step=1)
-    cache[randnum]=randnum
-
-for i in tqdm.tqdm(range(numofinsertions)):#Inserting data into cache
-    randnum = random.randrange(start=1,stop=numofinsertions,step=1)
-    cache.get(randnum)
-
-
-# for i in tqdm.tqdm(range(heapsize)):
-#     cache[i] = i
+# cache = ExpiringDict(max_len=heapsize,max_age_seconds=30)
 #
-# for i in tqdm.tqdm(range(heapsize)):
-#     cache.get(i)
+# for i in tqdm.tqdm(range(numofinsertions)):#Inserting data into cache
+#     randnum = random.randrange(start=1,stop=numofinsertions,step=1)
+#     cache[randnum]=randnum
+#
+# for i in tqdm.tqdm(range(numofinsertions)):#Inserting data into cache
+#     randnum = random.randrange(start=1,stop=numofinsertions,step=1)
+#     cache.get(randnum)
+#
+#
+# # for i in tqdm.tqdm(range(heapsize)):
+# #     cache[i] = i
+# #
+# # for i in tqdm.tqdm(range(heapsize)):
+# #     cache.get(i)
+#
+# cache.get_hitratio()
+# cache.get_missratio()
+# cache.get_eviction()
+# cache.get_evictionbyttl()
+# cache.get_sizeofdict()
 
+#Read data into dictionary, need to consider the length of data as well when inserting
+
+#Data from Trace:
+# (epoch time, obj, length of data, new time to live)
+# 1585440000 11606970 104857622 50331658
+# 1585440000 2814533 104857627 50331658
+
+#Total 1000000 data points, anymore will take too long
+#500000 for insertion
+#500000 for get searches
+#Ignore Time start, key = obj, value = length of data, time = new ttl
+
+heapsize = 10000000
+cache = ExpiringDict(max_len=heapsize,max_age_seconds=30)
+readfile = open("n.sbin-1000000_items_10_ttl.txt","r")
+filelines = readfile.readlines()
+length = 1000000
+numofinsertions = length/2
+counter =0
+for line in filelines:
+    data = line.split(" ")
+    obj = data[1]
+    value = int(data[2])
+    ttl = int(data[3])
+    # need to scale down ttl sinced values of ttl are 50331658
+    ttl = ttl % 10
+    if(counter<numofinsertions):
+        cache[obj] = (value,ttl)
+    else:
+        cache.get(obj)
+    counter += 1
+
+cache.items_with_timestamp()
 cache.get_hitratio()
 cache.get_missratio()
 cache.get_eviction()

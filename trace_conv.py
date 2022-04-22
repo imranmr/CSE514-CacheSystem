@@ -24,7 +24,8 @@ def change_get_to_set(trace_path, default_ttl):
     n_req = 0
 
     ifile = open(trace_path, "rb")
-    ofile = open(trace_path + ".processed", "wb")
+    # ofile = open(trace_path + ".processed", "wb")
+    ofile = open(trace_path + "-10000000_items_10_ttl.txt", "w")
     r = ifile.read(s.size)
     while r:
         n_req += 1
@@ -60,10 +61,14 @@ def change_get_to_set(trace_path, default_ttl):
         #         print("failed delete {}".format(obj))
         #     else:
         #         cached_obj.remove(obj)
-        print(ts, obj, kv_len, op_ttl_new)
+        # print(ts, obj, kv_len, op_ttl_new)
         #(epoch time, obj, length of data, time to live
-        ofile.write(s.pack(ts, obj, kv_len, op_ttl_new))
+        # ofile.write(s.pack(ts, obj, kv_len, op_ttl_new))
+        stringval = str(ts)+" "+ str(obj) +" "+ str(kv_len) +" "+str(op_ttl_new)+"\n"
+        ofile.write(stringval)
         seen_obj.add(obj)
+        if(n_req==10000000):
+            break
     end_ts = ts
 
     ifile.close()
@@ -82,3 +87,5 @@ if __name__ == "__main__":
     args = ap.parse_args()
 
     globals()[args.func](args.trace, args.default_ttl)
+
+#command run: python3 trace_conv.py n.sbin 100
