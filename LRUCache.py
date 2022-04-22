@@ -55,7 +55,7 @@ class LRUCache:
 # 1 for getting
 # heapsize = 1048576000
 start_time = time.time()
-heapsize = 100000000
+heapsize = 1000000
 numofitems=0
 maincache = LRUCache(heapsize)
 
