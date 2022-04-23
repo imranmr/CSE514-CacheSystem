@@ -77,7 +77,7 @@ def change_get_to_set(trace_path, default_ttl):
         # print(ts, obj, kv_len, op_ttl_new)
         #(epoch time, obj, length of data, time to live
         # ofile.write(s.pack(ts, obj, kv_len, op_ttl_new))
-        stringval = str(ts)+" "+ str(obj) +" "+ str(kv_len) +" "+str(op_ttl_new)+"\n"
+        stringval = str(ts)+" "+ str(op) +" "+ str(key_len) +" "+str(ttl)+"\n"
         ofile.write(stringval)
         seen_obj.add(obj)
         if (n_req%100000 == 0):

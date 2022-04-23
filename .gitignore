@@ -5,3 +5,6 @@ n.sbin.zst
 /n.sbin-100000000_items_10_ttl.txt
 /n.sbintemp.txt
 /mix1_cache.sbin
+/mix1_cache.sbin-temp.txt
+/mix1_cache.sbin-sampled_1000_items_10_ttl_mix_2.txt
+/mix1_cache.sbin-sampled_1000_items_10_ttl_mix.txt
