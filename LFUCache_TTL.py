@@ -35,7 +35,7 @@ class LFUCache(object):
         self.__insertions = 0
 
 
-    def get(self, key):
+    def get(self, key, current_time, ttl=0):
         """
         :type key: int
         :rtype: int
@@ -53,6 +53,7 @@ class LFUCache(object):
         
 
         self.__key_to_node[key].freq += 1 #update frequency
+        self.__key_to_node[key].ttl = max(self.__key_to_node[key].ttl, current_time + ttl)
         self.__hits += 1
         return self.__key_to_node[key].value
         
@@ -162,7 +163,7 @@ if __name__ == "__main__":
         totallen+=value
         ttl = int(data[3])
         #print(obj,value,ttl)
-        if (cache.get(obj) >= 0):
+        if (cache.get(obj, current_time, ttl) >= 0):
             #hit
             #print("==HIT")
             hits += 1
