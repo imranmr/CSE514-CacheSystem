@@ -28,15 +28,15 @@ def change_get_to_set(trace_path, default_ttl):
 
     ifile = open(trace_path, "rb")
     # ofile = open(trace_path + ".processed", "wb")
-    ofile = open(trace_path + "-sampled_160_items_10_ttl.txt", "w")
+    ofile = open(trace_path + "-sampled_1000_items_10_ttl_mix_2.txt", "w")
     r = ifile.read(s.size)
     fsize = os.path.getsize(trace_path)
     pos = 0
-    sample_rate = 160 #get one sample from sample_rate items
+    sample_rate = 1000 #get one sample from sample_rate items
 
     lines = fsize//s.size
     print(f"total number of lines = {lines}")
-    
+
     while pos < fsize-s.size:
         ifile.seek(pos)
         r = ifile.read(s.size)

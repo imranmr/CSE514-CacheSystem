@@ -21,6 +21,7 @@ class ExpiringDict(OrderedDict):
 
         OrderedDict.__init__(self)
         self.max_len = max_len
+        self.current_len = 0 #update current_len on every entry
         self.max_age = max_age_seconds
         self.lock = RLock()
         self.hit = 0
@@ -84,22 +85,38 @@ class ExpiringDict(OrderedDict):
     def __setitem__(self, key, value, set_time=None):
         """ Set d[key] to value. """
         with self.lock:
-            if len(self) == self.max_len:
+            if len(self) == self.max_len or (value[0]+self.current_len >= self.max_len):
                 if key in self:
                     del self[key]
                     self.num_evicted += 1
                     self.totalrequest += 1
                     self.hit+=1
+                    item = OrderedDict.__getitem__(self, key)
+                    print("currentsize=",self.current_len,"newlen=",value[0])
+                    self.current_len-= int(item[1][0])
                 else:
                     try:
-                        self.popitem(last=False)
+                        item = self.popitem(last=False)
+                        self.current_len -= int(item[1][0])
+                        print("currentsize=", self.current_len, "newlen=", value[0])
                         self.num_evicted += 1
                         self.totalrequest += 1
                     except KeyError:
                         pass
             if set_time is None:
                 set_time = time.time()
+            while(value[0]+self.current_len>=self.max_len):
+                try:
+                    item = self.popitem(last=False)
+                    print(item)
+                    self.current_len -= int(item[1][0])
+                    print("currentsize=", self.current_len, "newlen=", value[0],"check size",item[1][0])
+                    self.num_evicted += 1
+                    self.totalrequest += 1
+                except KeyError:
+                    pass
             OrderedDict.__setitem__(self, key, (value, set_time))
+            self.current_len+=value[0]
 
     def pop(self, key, default=None):
         """ Get item from the dict and remove it.
@@ -217,8 +234,11 @@ class ExpiringDict(OrderedDict):
         if(self.totalrequest!=0):
             print("Miss Ratio:", 1 - 1.00 * self.hit / self.totalrequest)
 
-    def get_sizeofdict(self):
+    def get_numofitems(self):
         print("Number of items in dictionary:",len(self))
+
+    def get_currentcachesize(self):
+        print("Current Cache Size=",self.current_len,((self.max_len-self.current_len)/self.max_len) * 100,"% Free Space Left")
 
 # numofinsertions = 10000000
 # heapsize = 10000000
@@ -257,31 +277,44 @@ class ExpiringDict(OrderedDict):
 #500000 for insertion
 #500000 for get searches
 #Ignore Time start, key = obj, value = length of data, time = new ttl
-
+start = time.time()
+full_heapsize=1048576000 #1,048,576,000
 heapsize = 10000000
-cache = ExpiringDict(max_len=heapsize,max_age_seconds=30)
-readfile = open("n.sbin-1000000_items_10_ttl.txt","r")
+cache = ExpiringDict(max_len=full_heapsize,max_age_seconds=30)
+# readfile = open("n.sbin-10000000_items_10_ttl.txt","r")
+readfile = open("mix1_cache.sbin-sampled_1000_items_10_ttl_mix.txt","r")
 filelines = readfile.readlines()
-length = 1000000
+length = 10000000
 numofinsertions = length/2
 counter =0
+totallen=0
 for line in filelines:
     data = line.split(" ")
     obj = data[1]
     value = int(data[2])
+    totallen+=value
     ttl = int(data[3])
+    # print(obj,value,ttl)
     # need to scale down ttl sinced values of ttl are 50331658
-    ttl = ttl % 10
-    if(counter<numofinsertions):
-        cache[obj] = (value,ttl)
-    else:
-        cache.get(obj)
+    # ttl = ttl % 10
+    # if(counter<numofinsertions):
+    #     cache[obj] = (value,ttl)
+    # else:
+    #     cache.get(obj)
     counter += 1
-
+    # if(counter==11):
+    #     break
+print("totallen=",totallen,"averagesize=",totallen/counter)
 cache.items_with_timestamp()
 cache.get_hitratio()
 cache.get_missratio()
 cache.get_eviction()
 cache.get_evictionbyttl()
-cache.get_sizeofdict()
+cache.get_numofitems()
+cache.get_currentcachesize()
+print("Total len=",totallen)
+print("Heap Size=",full_heapsize)
+end = time.time()
+
+print(end - start)
 

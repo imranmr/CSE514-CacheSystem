@@ -25,8 +25,10 @@ def change_get_to_set(trace_path, default_ttl):
 
     ifile = open(trace_path, "rb")
     # ofile = open(trace_path + ".processed", "wb")
-    ofile = open(trace_path + "-10000000_items_10_ttl.txt", "w")
+    # ofile = open(trace_path + "-100000000_items_10_ttl.txt", "w")
+    ofile = open(trace_path + "-temp.txt", "w")
     r = ifile.read(s.size)
+    # r=ifile.readline()[-1]
     while r:
         n_req += 1
         ts, obj, kv_len, op_ttl = s.unpack(r)
@@ -46,7 +48,7 @@ def change_get_to_set(trace_path, default_ttl):
             op = 3
             if ttl == 0:
                 ttl = default_ttl
-
+        print("TTL=",ttl,"kvlen=",kv_len,"key_len",key_len)
         op_ttl_new = (op << 24) | (ttl & (0x01000000 - 1))
 
         if key_len == 0:
@@ -64,10 +66,15 @@ def change_get_to_set(trace_path, default_ttl):
         # print(ts, obj, kv_len, op_ttl_new)
         #(epoch time, obj, length of data, time to live
         # ofile.write(s.pack(ts, obj, kv_len, op_ttl_new))
-        stringval = str(ts)+" "+ str(obj) +" "+ str(kv_len) +" "+str(op_ttl_new)+"\n"
+        stringval = str(ts)+" "+ str(obj) +" "+ str(key_len) +" "+str(op_ttl_new)+"\n"
         ofile.write(stringval)
         seen_obj.add(obj)
-        if(n_req==10000000):
+        print(ttl,op_ttl_new)
+        # if(n_req==1):
+        #
+        #     break
+        if(n_req==100000000):
+
             break
     end_ts = ts
 
