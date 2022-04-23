@@ -34,7 +34,8 @@ def change_get_to_set(trace_path, default_ttl):
     pos = 0
     sample_rate = 160 #get one sample from sample_rate items
 
-    print(f"total number of lines = {fsize//s.size}")
+    lines = fsize//s.size
+    print(f"total number of lines = {lines}")
     
     while pos < fsize-s.size:
         ifile.seek(pos)
@@ -81,13 +82,14 @@ def change_get_to_set(trace_path, default_ttl):
         seen_obj.add(obj)
         if (n_req%100000 == 0):
             print(f"sampled items: {n_req}")
-            print(f"position: {pos}")
+            #print(f"position: {pos}")
+            print(f"progress: %{int((n_req/(lines//sample_rate))*100)}")
 
     end_ts = ts
 
     ifile.close()
     ofile.close()
-    print(f"total number of samples items {n_req}")
+    print(f"total number of sampled items {n_req}")
     print("time range {}-{} ({} sec) total {} obj".format(
         start_ts, end_ts, end_ts - start_ts, len(seen_obj)))
 
