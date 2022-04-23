@@ -92,7 +92,7 @@ class ExpiringDict(OrderedDict):
                     self.totalrequest += 1
                     self.hit+=1
                     item = OrderedDict.__getitem__(self, key)
-                    print("currentsize=",self.current_len,"newlen=",value[0])
+                    print("currentsize=",self.current_len,"newlen=",value[0],"item=",item)
                     self.current_len-= int(item[1][0])
                 else:
                     try:
@@ -281,8 +281,9 @@ start = time.time()
 full_heapsize=1048576000 #1,048,576,000
 heapsize = 10000000
 cache = ExpiringDict(max_len=full_heapsize,max_age_seconds=30)
-# readfile = open("n.sbin-10000000_items_10_ttl.txt","r")
-readfile = open("mix1_cache.sbin-sampled_1000_items_10_ttl_mix.txt","r")
+readfile = open("n.sbin-10000000_items_10_ttl.txt","r")
+# readfile = open("mix1_cache.sbin-sampled_1000_items_10_ttl_mix.txt","r")
+# readfile = open("mix1_cache.sbin-sampled_1000_items_100_ttl_mix_3.txt","r")
 filelines = readfile.readlines()
 length = 10000000
 numofinsertions = length/2
@@ -290,21 +291,22 @@ counter =0
 totallen=0
 for line in filelines:
     data = line.split(" ")
-    obj = data[1]
-    value = int(data[2])
-    totallen+=value
+    obj = int(data[1])
+    key_len = int(data[2])
+    # key_len = (key_len >> 22) & (0x00000400 - 1)
+    totallen+=key_len
     ttl = int(data[3])
+    # print(key_len)
     # print(obj,value,ttl)
-    # need to scale down ttl sinced values of ttl are 50331658
-    # ttl = ttl % 10
-    # if(counter<numofinsertions):
-    #     cache[obj] = (value,ttl)
-    # else:
-    #     cache.get(obj)
+
+    if(counter<numofinsertions):
+        cache[obj] = (key_len,ttl)
+    else:
+        cache.get(obj)
     counter += 1
     # if(counter==11):
     #     break
-print("totallen=",totallen,"averagesize=",totallen/counter)
+print("totallen=",totallen,"averagesize=",totallen/counter,"Total Items=",counter)
 cache.items_with_timestamp()
 cache.get_hitratio()
 cache.get_missratio()
