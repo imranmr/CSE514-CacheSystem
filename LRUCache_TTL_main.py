@@ -3,11 +3,18 @@ import sys
 import random
 import os
 
+def mono():
+    if not hasattr(mono, "counter"):
+        mono.counter = 0
+    mono.counter += 1
+    return mono.counter
+
+
 class ListNode(object):
-    def __init__(self, key, value, ttl=-1, freq=0):
+    def __init__(self, key, value, ttl=-1):
         self.key = key #object name
         self.value = value #object size
-        self.freq = freq 
+        self.usetime = mono()
         self.ttl = ttl #-1 ttl is infinity
 
 
@@ -21,8 +28,6 @@ class LFUCache(object):
         """
         self.__capa = capacity #maximum size of cache in bytes
         self.__size = 0
-        self.__min_freq = 0
-        #self.__freq_to_nodes = collections.defaultdict(LinkedList)
         self.__key_to_node = {}
         self.__overhead = overhead #overhead for each item in bytes
         self.__timer = 0 #keeps track of time for TTL expiration detection
@@ -52,7 +57,7 @@ class LFUCache(object):
             return -2
         
 
-        self.__key_to_node[key].freq += 1 #update frequency
+        self.__key_to_node[key].usetime = mono() #update last used time
         self.__key_to_node[key].ttl = max(self.__key_to_node[key].ttl, current_time + ttl)
         self.__hits += 1
         return self.__key_to_node[key].value
@@ -92,18 +97,18 @@ class LFUCache(object):
             #after removing expired nodes, check if enough space
             if (self.__capa < self.__size + value + self.__overhead): #TODO make more efficient
                 ##still not enough space, need to use LFU to evict items until enough space
-                #self.__key_to_node.sort(key=lambda node: node.freq)
-                #s = sorted(self.__key_to_node.items(), key=lambda x: x.freq, reverse=True)
-                s = dict(sorted(self.__key_to_node.items(), key=lambda item: item[1].freq))
+                #self.__key_to_node.sort(key=lambda node: node.usetime)
+                #s = sorted(self.__key_to_node.items(), key=lambda x: x.usetime, reverse=True)
+                s = dict(sorted(self.__key_to_node.items(), key=lambda item: item[1].usetime))
                 self.__key_to_node = s
                 #minimum = min([i.value for i in self.__key_to_node.values()])
                 for k, v in list(self.__key_to_node.items()):
-                    if (self.__capa/2 >= self.__size): #Remove half of cache with lowest freq   #(self.__capa >= self.__size + value + self.__overhead): #item can now fit
+                    if (self.__capa/2 >= self.__size): #Remove half of cache with lowest use time   #(self.__capa >= self.__size + value + self.__overhead): #item can now fit
                         return
                     else:
-                        #print(f"removing freq {v.freq}")
+                        #print(f"removing lru {v.usetime}")
                         self.__size -= v.value + self.__overhead #decrease cache size
-                        self.__key_to_node.pop(k) #remove minimum freq
+                        self.__key_to_node.pop(k) #remove minimum use time
                         self.__evictions += 1
 
         #add item

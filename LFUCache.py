@@ -98,7 +98,7 @@ class LFUCache(object):
                 self.__key_to_node = s
                 #minimum = min([i.value for i in self.__key_to_node.values()])
                 for k, v in list(self.__key_to_node.items()):
-                    if (v.freq != 0 and self.__capa/2 >= self.__size): #Remove half of cache with lowest freq   #(self.__capa >= self.__size + value + self.__overhead): #item can now fit
+                    if (self.__capa/2 >= self.__size): #Remove half of cache with lowest freq   #(self.__capa >= self.__size + value + self.__overhead): #item can now fit
                         return
                     else:
                         #print(f"removing freq {v.freq}")
